@@ -1,12 +1,13 @@
 {
   "name": "Sonic Pro — Mix Analyzer",
   "short_name": "Sonic Pro",
-  "description": "Production-grade music mix analyzer with Delta reference comparison and DSP spectral analysis.",
+  "description": "Production-grade music mix analyzer. EBU R128 LUFS, spectral analysis, 7-band Delta engine, AI Mix Coach.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#060611",
-  "theme_color": "#00d8ff",
+  "background_color": "#0a0a0a",
+  "theme_color": "#2563eb",
   "orientation": "landscape-primary",
+  "categories": ["music", "productivity", "utilities"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -20,6 +21,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["music", "productivity", "utilities"]
+  ]
 }

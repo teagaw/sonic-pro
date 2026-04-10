@@ -1,21 +1,8 @@
-# Dependencies
-node_modules
-
-# Environment variables — NEVER commit these
-.env
-.env.local
-.env.*.local
-
-# Build output
-dist
-
-# Vite cache
-.vite
-
-# OS files
+node_modules/
+build/
+dist/
+coverage/
 .DS_Store
-Thumbs.db
-
-# Editor directories
-.idea
-.vscode
+*.log
+.env*
+!.env.example

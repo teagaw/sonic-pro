@@ -21,7 +21,7 @@ const CORS = {
 };
 
 const GEMINI_MODEL   = "gemini-2.0-flash";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_API_URL = `YOUR_API_URL`;
 const FREE_AI_LIMIT  = 2;
 
 function getWeekStart(): string {

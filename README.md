@@ -1,6 +1,6 @@
-# SonicPro v7
+# SonicPro v5
 
-Production-grade music mix analyzer. EBU R128 LUFS metering, 7-band spectral analysis, AI Mix Coach, Reference Track Comparison, Vibe Timeline. SaaS — $9/mo Pro tier via Stripe.
+Production-grade music mix analyzer. EBU R128 LUFS metering, 7-band spectral analysis, Reference Track Comparison, Vibe Timeline. SaaS — $9/mo Pro tier via Stripe.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ Production-grade music mix analyzer. EBU R128 LUFS metering, 7-band spectral ana
 | Styling | Tailwind CSS v4 + shadcn/ui |
 | DSP | Custom Web Worker — 674 lines, zero deps |
 | Backend | Supabase (Auth + Postgres + Edge Functions) |
-| AI | Gemini 2.0 Flash (server-side proxy) |
+
 | Payments | Stripe Checkout + Webhooks |
 | PWA | Service Worker + Web App Manifest |
 
@@ -20,7 +20,6 @@ Production-grade music mix analyzer. EBU R128 LUFS metering, 7-band spectral ana
 |---|---|---|
 | Audio analysis | Unlimited | Unlimited |
 | Track duration | 20 min | Unlimited |
-| AI Mix Coach audits | 2 / week | Unlimited |
 | Report / JSON exports | 3 / week | Unlimited |
 | Library saves | 5 total | Unlimited |
 
@@ -39,12 +38,10 @@ cp .env.example .env
 # → supabase-migration-v3.sql (v3 — subscriptions, user_usage, RPC)
 
 # 4. Deploy Edge Functions
-supabase functions deploy ai-advice
 supabase functions deploy create-checkout
 supabase functions deploy stripe-webhook --no-verify-jwt
 
 # 5. Set server-side secrets
-supabase secrets set GEMINI_API_KEY=your_gemini_key
 supabase secrets set STRIPE_SECRET_KEY=sk_live_...
 supabase secrets set STRIPE_PRICE_ID=price_...
 supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
@@ -70,7 +67,6 @@ src/
 │   ├── types.ts                # Shared TypeScript interfaces
 │   ├── supabase.ts             # Supabase client
 │   ├── targets.ts              # 10 genre profiles
-│   ├── gemini.ts               # AI advice client
 │   ├── stripe.ts               # Checkout helper
 │   └── utils.ts                # cn() helper
 ├── context/
@@ -83,8 +79,8 @@ src/
 ├── workers/
 │   └── audioWorker.ts          # 674-line DSP engine
 └── components/
-    ├── MixDashboard.tsx        # Main layout (622 lines)
-    ├── SidePanel.tsx           # AI + export (tier-gated)
+    ├── MixDashboard.tsx        # Main layout (625 lines)
+    ├── SidePanel.tsx           # Export controls (tier-gated)
     ├── PrintPreview.tsx        # A4 PDF report
     ├── LibraryPanel.tsx        # Saved analyses
     ├── AuthModal.tsx           # Login / signup
@@ -95,7 +91,6 @@ src/
     └── ui/                     # shadcn primitives
 
 supabase/functions/
-├── ai-advice/                  # Gemini proxy (auth + usage gated)
 ├── create-checkout/            # Stripe session creator
 └── stripe-webhook/             # Subscription sync
 

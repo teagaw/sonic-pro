@@ -84,4 +84,4 @@ export function useWorkerContext(): WorkerContextValue {
   return ctx;
 }
 
-export default AudioWorkerContext;
+// ponytail: default export unused — only named exports AudioWorkerProvider/useWorkerContext are imported

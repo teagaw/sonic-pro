@@ -8,7 +8,7 @@ export interface SpectralBands {
   highMid: number; presence: number; brilliance: number;
 }
 
-export interface MixWarning {
+interface MixWarning {
   type:     string;
   severity: 'critical' | 'warning' | 'info';
   message:  string;
@@ -57,7 +57,7 @@ export interface DeltaResult {
 }
 
 /** Shape stored in Supabase full_data column */
-export interface AnalysisSnapshot {
+interface AnalysisSnapshot {
   mixHealth:       MixHealth;
   referenceHealth: MixHealth | null;
   vibeTimeline:    VibeSegment[] | null;

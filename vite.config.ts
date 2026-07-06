@@ -26,7 +26,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'motion':       ['motion'],
           'supabase':     ['@supabase/supabase-js'],
-          'genai':        ['@google/genai'],
           'ui':           ['class-variance-authority', 'clsx', 'tailwind-merge'],
         },
       },

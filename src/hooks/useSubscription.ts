@@ -6,7 +6,7 @@
  * every component can gate actions with a single boolean.
  *
  * Tier limits:
- *   Free → 2 AI audits/week · 3 exports/week · 5 library saves
+ *   Free → 3 exports/week · 5 library saves
  *   Pro  → unlimited everything
  */
 
@@ -14,21 +14,18 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseConfigured }   from "../lib/supabase";
 
 // ─── Constants ────────────────────────────────────────────────
-export const FREE_LIMITS = {
-  aiAuditsPerWeek: 2,
+const FREE_LIMITS = {
   exportsPerWeek:  3,
   maxSaves:        5,
 } as const;
 
-export const PRO_LIMITS = {
-  aiAuditsPerWeek: Infinity,
+const PRO_LIMITS = {
   exportsPerWeek:  Infinity,
   maxSaves:        Infinity,
 } as const;
 
 // ─── Types ────────────────────────────────────────────────────
-export interface UsageState {
-  aiAuditsThisWeek: number;
+interface UsageState {
   exportsThisWeek:  number;
 }
 
@@ -38,7 +35,6 @@ export interface SubscriptionState {
   periodEnd:  Date | null;
   usage:      UsageState;
   limits:     typeof FREE_LIMITS | typeof PRO_LIMITS;
-  canUseAI:   boolean;
   canExport:  boolean;
   loading:    boolean;
   refresh:    () => Promise<void>;
@@ -57,7 +53,7 @@ export function useSubscription(user: any | null): SubscriptionState {
   const [isPro,     setIsPro]     = useState(false);
   const [status,    setStatus]    = useState("free");
   const [periodEnd, setPeriodEnd] = useState<Date | null>(null);
-  const [usage,     setUsage]     = useState<UsageState>({ aiAuditsThisWeek: 0, exportsThisWeek: 0 });
+  const [usage,     setUsage]     = useState<UsageState>({ exportsThisWeek: 0 });
   const [loading,   setLoading]   = useState(false);
 
   const refresh = useCallback(async () => {
@@ -65,7 +61,7 @@ export function useSubscription(user: any | null): SubscriptionState {
       setIsPro(false);
       setStatus("free");
       setPeriodEnd(null);
-      setUsage({ aiAuditsThisWeek: 0, exportsThisWeek: 0 });
+      setUsage({ exportsThisWeek: 0 });
       return;
     }
 
@@ -80,7 +76,7 @@ export function useSubscription(user: any | null): SubscriptionState {
         .single(),
       supabase
         .from("user_usage")
-        .select("ai_audits_count, exports_count")
+        .select("exports_count")
         .eq("user_id", user.id)
         .eq("week_start", getWeekStart())
         .single(),
@@ -93,7 +89,6 @@ export function useSubscription(user: any | null): SubscriptionState {
     setPeriodEnd(subRes.data?.current_period_end ? new Date(subRes.data.current_period_end) : null);
 
     setUsage({
-      aiAuditsThisWeek: usageRes.data?.ai_audits_count ?? 0,
       exportsThisWeek:  usageRes.data?.exports_count   ?? 0,
     });
 
@@ -103,8 +98,7 @@ export function useSubscription(user: any | null): SubscriptionState {
   useEffect(() => { refresh(); }, [refresh]);
 
   const limits    = isPro ? PRO_LIMITS : FREE_LIMITS;
-  const canUseAI  = isPro || usage.aiAuditsThisWeek  < FREE_LIMITS.aiAuditsPerWeek;
   const canExport = isPro || usage.exportsThisWeek   < FREE_LIMITS.exportsPerWeek;
 
-  return { isPro, status, periodEnd, usage, limits, canUseAI, canExport, loading, refresh };
+  return { isPro, status, periodEnd, usage, limits, canExport, loading, refresh };
 }

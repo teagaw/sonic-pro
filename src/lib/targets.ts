@@ -12,7 +12,7 @@
 
 import type { SpectralBands } from './types';
 
-export interface BandRatio { relative: number; label: string }
+interface BandRatio { relative: number; label: string }
 
 export interface GoldenTarget {
   id:          string;
@@ -122,14 +122,14 @@ export const GOLDEN_TARGETS: GoldenTarget[] = [
 const LS_KEY = 'sonic-pro-custom-profiles-v5';
 const MAX_CUSTOM = 10;
 
-export function loadCustomProfiles(): Record<string, GoldenTarget> {
+function loadCustomProfiles(): Record<string, GoldenTarget> {
   try {
     const raw = localStorage.getItem(LS_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch { return {}; }
 }
 
-export function saveCustomProfile(profile: GoldenTarget): void {
+function saveCustomProfile(profile: GoldenTarget): void {
   const custom = loadCustomProfiles();
   if (Object.keys(custom).length >= MAX_CUSTOM)
     throw new Error(`Maximum ${MAX_CUSTOM} custom profiles. Delete one before saving.`);
@@ -137,7 +137,7 @@ export function saveCustomProfile(profile: GoldenTarget): void {
   localStorage.setItem(LS_KEY, JSON.stringify(custom));
 }
 
-export function deleteCustomProfile(id: string): void {
+function deleteCustomProfile(id: string): void {
   try {
     const custom = loadCustomProfiles();
     delete custom[id];

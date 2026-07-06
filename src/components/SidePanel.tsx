@@ -1,27 +1,23 @@
 /**
- * src/components/SidePanel.tsx — v3
+ * src/components/SidePanel.tsx — v4
  *
  * Changes:
  *   - Accepts `subscription` (SubscriptionState) + `onUpgrade` props.
- *   - AI Mix Coach button is gated: disabled + usage badge for free tier.
  *   - Print Report button gated: disabled + remaining count for free tier.
  *   - Export JSON button gated (calls onExportJson which gates in MixDashboard).
  *   - Upgrade CTA button wired to onUpgrade.
  *   - Shows Pro badge + period-end when active.
  */
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
-  Sparkles, Activity, ChevronRight, Cloud, Printer,
+  ChevronRight, Cloud, Printer,
   Download, Zap, ShieldCheck, Lock, Crown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { PrintPreview }   from './PrintPreview';
-import { getAiMixAdvice } from '../lib/gemini';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getAllProfiles }  from '../lib/targets';
 import type { SubscriptionState } from '../hooks/useSubscription';
@@ -57,38 +53,10 @@ export function SidePanel({
   selectedProfileId, currentProfile,
   subscription, onSaveToLibrary, onExportJson, onUpgrade, addToast,
 }: SidePanelProps) {
-  const [aiAdvice,    setAiAdvice]    = useState<string | null>(null);
-  const [aiCode,      setAiCode]      = useState<string | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const { isPro, usage, limits, canExport } = subscription;
 
-  const { isPro, usage, limits, canUseAI, canExport } = subscription;
-
-  // ── AI Audit ───────────────────────────────────────────────
-  const generateAiAdvice = useCallback(async () => {
-    if (!userTrack.mixHealth) return;
-
-    if (!canUseAI) {
-      addToast(`You've used both AI audits this week. Resets Monday. Upgrade to Pro for unlimited.`, 'warning');
-      return;
-    }
-
-    setIsAiLoading(true);
-    setAiCode(null);
-    const profile = getAllProfiles()[selectedProfileId];
-    const result  = await getAiMixAdvice(userTrack.mixHealth, deltaReady ? delta : null, profile);
-    setAiAdvice(result.advice);
-    setAiCode(result.code ?? null);
-
-    if (!result.code) {
-      // Success — refresh subscription usage counts
-      await subscription.refresh();
-    }
-    setIsAiLoading(false);
-  }, [userTrack.mixHealth, delta, deltaReady, selectedProfileId, canUseAI, subscription, addToast]);
-
-  // ── Usage badge helpers ────────────────────────────────────
-  const aiRemaining  = isPro ? null : Math.max(0, limits.aiAuditsPerWeek - usage.aiAuditsThisWeek);
-  const expRemaining = isPro ? null : Math.max(0, limits.exportsPerWeek  - usage.exportsThisWeek);
+  // ── Usage badge helper ─────────────────────────────────────
+  const expRemaining = isPro ? null : Math.max(0, limits.exportsPerWeek - usage.exportsThisWeek);
 
   return (
     <div className="space-y-6">
@@ -105,109 +73,6 @@ export function SidePanel({
           )}
         </div>
       )}
-
-      {/* ── AI MIX COACH ───────────────────────────────────── */}
-      <Card className="bg-zinc-900/50 border-zinc-800 relative overflow-hidden">
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
-          {!isPro && (
-            <span className={`text-[8px] font-mono font-bold ${canUseAI ? 'text-zinc-500' : 'text-red-400'}`}>
-              {aiRemaining}/{limits.aiAuditsPerWeek} left
-            </span>
-          )}
-          <Sparkles className="w-4 h-4 text-blue-500 animate-pulse" />
-        </div>
-        <CardHeader>
-          <CardTitle className="text-base font-bold">AI Mix Coach</CardTitle>
-          <CardDescription className="text-[9px] uppercase tracking-widest font-mono">
-            Gemini 2.0 Flash · Real DSP data
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isAiLoading ? (
-            <div className="space-y-3 py-4">
-              {[3, 4, 2].map((w, i) => (
-                <div key={i} className="h-3 bg-zinc-800 rounded animate-pulse" style={{ width: `${w * 25}%` }} />
-              ))}
-            </div>
-          ) : aiAdvice ? (
-            <>
-              <ScrollArea className="h-64 pr-3">
-                <div className={`whitespace-pre-line leading-relaxed text-xs font-mono ${
-                  aiCode === 'LIMIT_REACHED' ? 'text-yellow-400' :
-                  aiCode === 'AUTH_REQUIRED' ? 'text-blue-400'  :
-                  aiCode === 'SERVICE_ERROR' ? 'text-red-400'   : 'text-zinc-300'
-                }`}>
-                  {aiAdvice}
-                </div>
-              </ScrollArea>
-              {!aiCode && (
-                <Button
-                  variant="outline" size="sm" disabled={!canUseAI}
-                  className="mt-4 w-full border-zinc-800 hover:bg-zinc-800 text-[9px] uppercase tracking-widest font-bold"
-                  onClick={() => { setAiAdvice(null); generateAiAdvice(); }}
-                >
-                  {canUseAI ? 'Regenerate' : `Limit reached — upgrade for more`}
-                </Button>
-              )}
-              {(aiCode === 'LIMIT_REACHED' || aiCode === 'AUTH_REQUIRED') && (
-                <Button
-                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white text-[9px] uppercase tracking-widest font-bold"
-                  onClick={onUpgrade}
-                >
-                  Upgrade to Pro — Unlimited
-                </Button>
-              )}
-            </>
-          ) : userTrack.mixHealth ? (
-            <div className="text-center py-10 px-4">
-              <div className="w-12 h-12 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
-                {canUseAI
-                  ? <Sparkles className="w-6 h-6 text-blue-500" />
-                  : <Lock className="w-6 h-6 text-zinc-600" />
-                }
-              </div>
-              {canUseAI ? (
-                <>
-                  <p className="text-xs text-zinc-400 mb-1">
-                    DSP analysis complete.<br />Generate expert mixing advice.
-                  </p>
-                  {!isPro && (
-                    <p className="text-[9px] font-mono text-zinc-600 mb-4">
-                      {aiRemaining} audit{aiRemaining !== 1 ? 's' : ''} remaining this week
-                    </p>
-                  )}
-                  <Button
-                    onClick={generateAiAdvice}
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full text-[9px] uppercase tracking-widest font-bold"
-                  >
-                    Generate AI Mix Advice
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-xs text-zinc-500 mb-1">
-                    Weekly limit reached<br />
-                    <span className="text-[9px] font-mono">(2/week on free tier · resets Monday)</span>
-                  </p>
-                  <Button
-                    className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white text-[9px] uppercase tracking-widest font-bold"
-                    onClick={onUpgrade}
-                  >
-                    Upgrade for Unlimited
-                  </Button>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-10 px-4">
-              <Activity className="w-8 h-8 text-zinc-700 mx-auto mb-3" />
-              <p className="text-xs text-zinc-600 italic">
-                Upload a track to receive professional mixing advice.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* ── EQ BLUEPRINT ───────────────────────────────────── */}
       <Card className="bg-zinc-900/50 border-zinc-800">
@@ -359,7 +224,6 @@ export function SidePanel({
           <CardContent className="space-y-3">
             <ul className="space-y-1.5">
               {[
-                'Unlimited AI Mix Coach audits',
                 'Unlimited analysis exports',
                 'Unlimited library saves',
                 'Unlimited track duration',

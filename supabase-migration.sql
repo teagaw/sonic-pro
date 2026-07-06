@@ -127,34 +127,7 @@ ALTER TABLE public.analyses
 --   the row first and then try to undo it — wasteful and unreliable.
 --
 -- Free tier cap: 20 analyses per user.
-
--- ┌──────────────────────────────────────────────────────────────┐
--- │  SUPERSEDED — DO NOT RUN                                     │
--- │  This old flat-20 cap is replaced by the tier-aware version  │
--- │  in supabase-migration-v3.sql (5 free / unlimited Pro).      │
--- │  Kept here for historical reference only.                    │
--- └──────────────────────────────────────────────────────────────┘
-
--- CREATE OR REPLACE FUNCTION check_analysis_limit()
--- RETURNS trigger LANGUAGE plpgsql AS $$
--- BEGIN
---   IF (
---     SELECT count(*)
---     FROM public.analyses
---     WHERE user_id = NEW.user_id
---   ) >= 20 THEN
---     RAISE EXCEPTION 'Analysis limit reached (20 maximum per tier). Delete an existing analysis to save a new one.';
---   END IF;
---   RETURN NEW;
--- END;
--- $$;
-
--- DROP TRIGGER IF EXISTS enforce_analysis_limit ON public.analyses;
-
--- CREATE TRIGGER enforce_analysis_limit
---   BEFORE INSERT ON public.analyses
---   FOR EACH ROW
---   EXECUTE FUNCTION check_analysis_limit();
+-- SUPERSEDED by tier-aware version in supabase-migration-v3.sql (5 free / unlimited Pro).
 
 
 -- ─────────────────────────────────────────────────────────────

@@ -61,7 +61,9 @@ serve(async (req) => {
     const allowedOrigins = (Deno.env.get("ALLOWED_RETURN_ORIGINS") ?? "").split(",").filter(Boolean).concat(ALLOWED_ORIGINS);
     try {
       const parsedUrl = new URL(returnUrl);
-      const isAllowed = allowedOrigins.some(origin => returnUrl.startsWith(origin));
+      const isAllowed = allowedOrigins.some(o =>
+        returnUrl === o || returnUrl.startsWith(o + "/") || returnUrl.startsWith(o + "?")
+      );
       if (!isAllowed) return json({ error: "Invalid return URL." }, 400);
     } catch {
       return json({ error: "Invalid return URL." }, 400);

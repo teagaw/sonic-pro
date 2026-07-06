@@ -40,12 +40,13 @@ export interface SubscriptionState {
   refresh:    () => Promise<void>;
 }
 
-// ─── Week start helper (ISO Monday) ──────────────────────────
+// ─── Week start helper (ISO Monday, UTC — matches DB date_trunc('week', now())) ──
 function getWeekStart(): string {
   const now  = new Date();
-  const day  = now.getDay();                  // 0 = Sunday
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(now.setDate(diff)).toISOString().split("T")[0];
+  const day  = now.getUTCDay();               // 0 = Sunday
+  const diff = now.getUTCDate() - day + (day === 0 ? -6 : 1);
+  const mon  = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), diff));
+  return mon.toISOString().split("T")[0];
 }
 
 // ─── Hook ─────────────────────────────────────────────────────

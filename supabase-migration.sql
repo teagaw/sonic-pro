@@ -15,6 +15,11 @@
 --   No client-side security checks — the database is the single
 --   source of truth.
 -- ═══════════════════════════════════════════════════════════════════
+-- NOTE: Sections 5-6 (check_analysis_limit) are SUPERSEDED by
+-- supabase-migration-v3.sql which defines the correct tier-aware
+-- version (5 free / unlimited Pro). The old flat-20 cap below is
+-- commented out to prevent accidental use on a fresh DB.
+-- ═══════════════════════════════════════════════════════════════════
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -123,26 +128,33 @@ ALTER TABLE public.analyses
 --
 -- Free tier cap: 20 analyses per user.
 
-CREATE OR REPLACE FUNCTION check_analysis_limit()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  IF (
-    SELECT count(*)
-    FROM public.analyses
-    WHERE user_id = NEW.user_id
-  ) >= 20 THEN
-    RAISE EXCEPTION 'Analysis limit reached (20 maximum per tier). Delete an existing analysis to save a new one.';
-  END IF;
-  RETURN NEW;
-END;
-$$;
+-- ┌──────────────────────────────────────────────────────────────┐
+-- │  SUPERSEDED — DO NOT RUN                                     │
+-- │  This old flat-20 cap is replaced by the tier-aware version  │
+-- │  in supabase-migration-v3.sql (5 free / unlimited Pro).      │
+-- │  Kept here for historical reference only.                    │
+-- └──────────────────────────────────────────────────────────────┘
 
-DROP TRIGGER IF EXISTS enforce_analysis_limit ON public.analyses;
+-- CREATE OR REPLACE FUNCTION check_analysis_limit()
+-- RETURNS trigger LANGUAGE plpgsql AS $$
+-- BEGIN
+--   IF (
+--     SELECT count(*)
+--     FROM public.analyses
+--     WHERE user_id = NEW.user_id
+--   ) >= 20 THEN
+--     RAISE EXCEPTION 'Analysis limit reached (20 maximum per tier). Delete an existing analysis to save a new one.';
+--   END IF;
+--   RETURN NEW;
+-- END;
+-- $$;
 
-CREATE TRIGGER enforce_analysis_limit
-  BEFORE INSERT ON public.analyses
-  FOR EACH ROW
-  EXECUTE FUNCTION check_analysis_limit();
+-- DROP TRIGGER IF EXISTS enforce_analysis_limit ON public.analyses;
+
+-- CREATE TRIGGER enforce_analysis_limit
+--   BEFORE INSERT ON public.analyses
+--   FOR EACH ROW
+--   EXECUTE FUNCTION check_analysis_limit();
 
 
 -- ─────────────────────────────────────────────────────────────

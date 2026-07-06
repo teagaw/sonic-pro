@@ -52,6 +52,21 @@ serve(async (req) => {
 
     const { returnUrl } = await req.json().catch(() => ({ returnUrl: supabaseUrl }));
 
+    // ── Validate returnUrl against allowlist ──────────────────
+    const ALLOWED_ORIGINS = [
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "https://sonicpro.app",
+    ];
+    const allowedOrigins = (Deno.env.get("ALLOWED_RETURN_ORIGINS") ?? "").split(",").filter(Boolean).concat(ALLOWED_ORIGINS);
+    try {
+      const parsedUrl = new URL(returnUrl);
+      const isAllowed = allowedOrigins.some(origin => returnUrl.startsWith(origin));
+      if (!isAllowed) return json({ error: "Invalid return URL." }, 400);
+    } catch {
+      return json({ error: "Invalid return URL." }, 400);
+    }
+
     // ── Get or create Stripe customer ─────────────────────────
     const admin = createClient(supabaseUrl, serviceKey);
     const { data: sub } = await admin.from("subscriptions").select("stripe_customer_id").eq("user_id", user.id).single();

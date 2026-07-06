@@ -22,13 +22,14 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
     if (!email.trim() || !password.trim()) { setError('Enter your email and password.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setError(null); setSuccess(null); setLoading(true);
+    if (!supabase) { setLoading(false); return; }
 
     if (tab === 'signup') {
-      const { error: e } = await supabase!.auth.signUp({ email, password });
+      const { error: e } = await supabase.auth.signUp({ email, password });
       if (e) setError(e.message);
       else { setSuccess('Check your email for a confirmation link.'); setTab('login'); }
     } else {
-      const { error: e } = await supabase!.auth.signInWithPassword({ email, password });
+      const { error: e } = await supabase.auth.signInWithPassword({ email, password });
       if (e) setError(e.message.includes('Invalid') ? 'Email or password is incorrect.' : e.message);
     }
     setLoading(false);
@@ -36,7 +37,8 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
 
   const handleGoogle = useCallback(async () => {
     setLoading(true);
-    await supabase!.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+    if (!supabase) { setLoading(false); return; }
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
     setLoading(false);
   }, []);
 

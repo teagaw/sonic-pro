@@ -112,8 +112,8 @@ export function MixDashboard({ theme, toggleTheme }: MixDashboardProps) {
       objectUrlRef.current = URL.createObjectURL(file);
       audioRef.current.src = objectUrlRef.current;
     }
-    loadTrack(file, trackType);
-  }, [loadTrack]);
+    loadTrack(file, trackType, subscription.isPro);
+  }, [loadTrack, subscription.isPro]);
 
   const togglePlayback = useCallback(() => {
     if (!audioRef.current) return;

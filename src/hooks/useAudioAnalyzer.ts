@@ -48,12 +48,12 @@ async function decodeAudioFile(file: File) {
   return { left, right, sampleRate, totalSamples, duration };
 }
 
-function validateAudio(sampleRate: number, totalSamples: number, duration: number, fileName: string) {
+function validateAudio(sampleRate: number, totalSamples: number, duration: number, fileName: string, isPro: boolean) {
   if (sampleRate < SR_MIN || sampleRate > SR_MAX)
     throw new Error(`"${fileName}" has unsupported sample rate (${sampleRate} Hz). Use 44.1kHz or 48kHz.`);
   if (totalSamples < FFT_SIZE)
     throw new Error(`"${fileName}" is too short. Minimum: ${(FFT_SIZE/44100*1000).toFixed(0)} ms.`);
-  if (duration > MAX_DURATION_SECS) {
+  if (!isPro && duration > MAX_DURATION_SECS) {
     const mins = (duration/60).toFixed(1);
     throw new Error(`"${fileName}" is ${mins} min. Free tier limit is 20 min. Upgrade to Pro.`);
   }
@@ -113,7 +113,7 @@ export function useAudioAnalyzer(selectedProfileId: string = 'none') {
     return unsub;
   }, [subscribe]);
 
-  const loadTrack = useCallback(async (file: File, trackType: 'user' | 'reference') => {
+  const loadTrack = useCallback(async (file: File, trackType: 'user' | 'reference', isPro: boolean = false) => {
     if (!file) return;
     setState(prev => ({
       ...prev,
@@ -122,7 +122,7 @@ export function useAudioAnalyzer(selectedProfileId: string = 'none') {
 
     try {
       const { left, right, sampleRate, totalSamples, duration } = await decodeAudioFile(file);
-      validateAudio(sampleRate, totalSamples, duration, file.name);
+      validateAudio(sampleRate, totalSamples, duration, file.name, isPro);
 
       setState(prev => ({
         ...prev,

@@ -6,6 +6,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = !!supabaseUrl && !!supabaseAnonKey;
 
 // Only initialize if configured to avoid "supabaseUrl is required" error on startup
-export const supabase = isSupabaseConfigured 
+export const supabase: SupabaseClient | null = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null as unknown as SupabaseClient;
+  : null;
